@@ -4,22 +4,30 @@ using Random = UnityEngine.Random;
 
 public class Weapon : MonoBehaviour
 {
+    [Header("Bullet Settings")]
     [SerializeField] private Transform bulletSpawn;
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private int bulletVelocity;
-    [SerializeField] private ShootingMode mode;
-    [SerializeField] private bool canShoot;
 
+    [Header("Shooting Settings")]
+    [SerializeField] private ShootingMode mode;
+    public WeaponModel weaponModel;
+    [SerializeField] private bool canShoot;
     [Range(0.1f,1f)]
     [SerializeField] private float delay = 0.25f;
     private float nextTimeToShoot = 0;
+    [SerializeField] private int bulletsInBurst = 1;
 
+    [Header("Spread settings")]
     [Range(0,2)]
     [SerializeField] private float spreadRangeX = 1;
     [Range(0, 2)]
     [SerializeField] private float spreadRangeY = 1;
 
-    [SerializeField] private int bulletsInBurst = 1;
+    [Header("Ammo settings")]
+    public int magazineSize = 30;
+    public int bulletsLeft;
+    [SerializeField] private bool magazineIsNotEmpty = true;
 
     public Recoil Camera_Recoil_Script;
     public WeaponRecoil Weapon_Recoil_Script;
@@ -30,12 +38,22 @@ public class Weapon : MonoBehaviour
         Burst
     }
 
+    public enum WeaponModel
+    {
+        AKM,
+        Shotgun
+    }
+
+    private void Start()
+    {
+        bulletsLeft = magazineSize;
+    }
 
     void Update()
     {
         canShoot = Time.time >= nextTimeToShoot;
 
-        if (canShoot)
+        if (canShoot && magazineIsNotEmpty)
         {
             if (mode == ShootingMode.Automatic)
             {
@@ -62,6 +80,37 @@ public class Weapon : MonoBehaviour
             }
         }
 
+        CheckAmmo();
+
+        if (Input.GetKeyDown(KeyCode.R))
+            Reload();
+    }
+
+    private void CheckAmmo()
+    {
+        if (bulletsLeft <= 0)
+            magazineIsNotEmpty = false;
+        else
+            magazineIsNotEmpty = true;
+    }
+
+    private void Reload()
+    {
+        if (weaponModel == WeaponModel.AKM && AmmoManager.Instance.totalAKMAmmo > 0)
+        {
+            int neededAmmo = magazineSize - bulletsLeft;
+            int actualAmmo = AmmoManager.Instance.totalAKMAmmo >= neededAmmo ? neededAmmo : AmmoManager.Instance.totalAKMAmmo;
+            bulletsLeft += actualAmmo;
+            AmmoManager.Instance.totalAKMAmmo -= actualAmmo;
+        }
+
+        if (weaponModel == WeaponModel.Shotgun && AmmoManager.Instance.totalShotgunAmmo > 0)
+        {
+            int neededAmmo = magazineSize - bulletsLeft;
+            int actualAmmo = AmmoManager.Instance.totalShotgunAmmo >= neededAmmo ? neededAmmo : AmmoManager.Instance.totalShotgunAmmo;
+            bulletsLeft += actualAmmo;
+            AmmoManager.Instance.totalShotgunAmmo -= actualAmmo;
+        }
     }
 
     private void Shoot()
@@ -99,7 +148,7 @@ public class Weapon : MonoBehaviour
             );
         }
 
-
+        bulletsLeft--;
     }
 
 
