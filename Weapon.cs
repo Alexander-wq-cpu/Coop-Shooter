@@ -17,6 +17,7 @@ public class Weapon : MonoBehaviour
     [SerializeField] private float delay = 0.25f;
     private float nextTimeToShoot = 0;
     [SerializeField] private int bulletsInBurst = 1;
+    [SerializeField] private int weaponDamage = 10;
 
     [Header("Spread settings")]
     [Range(0,2)]
@@ -28,6 +29,12 @@ public class Weapon : MonoBehaviour
     public int magazineSize = 30;
     public int bulletsLeft;
     [SerializeField] private bool magazineIsNotEmpty = true;
+
+    [Header("Reload settings")]
+    [SerializeField] private bool isReloading = false;
+    [SerializeField] private float reloadTime = 2f;
+
+    Animator animator;
 
     public Recoil Camera_Recoil_Script;
     public WeaponRecoil Weapon_Recoil_Script;
@@ -46,7 +53,24 @@ public class Weapon : MonoBehaviour
 
     private void Start()
     {
-        bulletsLeft = magazineSize;
+        if (animator = GetComponent<Animator>())
+        {
+            AnimationClip targetClip = null;
+
+            foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
+            {
+                if (clip.name == "AKM_Reload")
+                {
+                    targetClip = clip;
+                    break;
+                }
+            }
+
+            if(targetClip != null)
+                reloadTime = targetClip.length;
+
+            bulletsLeft = magazineSize;
+        }
     }
 
     void Update()
@@ -82,8 +106,11 @@ public class Weapon : MonoBehaviour
 
         CheckAmmo();
 
-        if (Input.GetKeyDown(KeyCode.R))
-            Reload();
+        if (Input.GetKeyDown(KeyCode.R) && isReloading == false && bulletsLeft < magazineSize)
+        {
+            animator.SetTrigger("RELOAD");
+            ReloadDelay();
+        }
     }
 
     private void CheckAmmo()
@@ -92,6 +119,12 @@ public class Weapon : MonoBehaviour
             magazineIsNotEmpty = false;
         else
             magazineIsNotEmpty = true;
+    }
+
+    private void ReloadDelay()
+    {
+        isReloading = true;
+        Invoke("Reload", reloadTime);
     }
 
     private void Reload()
@@ -111,6 +144,8 @@ public class Weapon : MonoBehaviour
             bulletsLeft += actualAmmo;
             AmmoManager.Instance.totalShotgunAmmo -= actualAmmo;
         }
+
+        isReloading = false;
     }
 
     private void Shoot()
@@ -120,6 +155,9 @@ public class Weapon : MonoBehaviour
 
         //создаём пулю у дула оружия (bulletSpawn)
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.LookRotation(shootingDirection));
+
+        //назначаем пуле урон оружия, чтобы у каждого оружия можно было установить разный урон
+        bullet.GetComponent<Bullet>().bulletDamage = weaponDamage;
 
         //выстреливаем пулю
         bullet.GetComponent<Rigidbody>().AddForce(shootingDirection * bulletVelocity, ForceMode.Impulse);

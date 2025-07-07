@@ -6,7 +6,7 @@ public class GlobalReferences : MonoBehaviour
 
     public GameObject bulletHoleEffect;
     public ParticleSystem muzzleFlashEffect;
-
+    
     private void Start()
     {
         if(Instance != null && Instance != this)

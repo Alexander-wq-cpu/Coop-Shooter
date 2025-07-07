@@ -12,6 +12,9 @@ public class HeadBobSystem : MonoBehaviour
     [Range(10f,100f)]
     public float Smooth = 10.0f;
 
+    [Range(1f,5f)]
+    public float StopHeadBobReturnSpeed = 1;
+
     Vector3 StartPos;
     void Start()
     {
@@ -20,8 +23,19 @@ public class HeadBobSystem : MonoBehaviour
 
     void Update()
     {
-        CheckForHeadBobTrigger();
-        StopHeadBob();
+        float inputMagnitude = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")).magnitude;
+
+        if (inputMagnitude > 0)
+        {
+            StartHeadBob();
+        }
+        else
+        {
+            StopHeadBob();
+        }
+        /*старый способ
+         * CheckForHeadBobTrigger();
+        StopHeadBob();*/
     }
 
     private void CheckForHeadBobTrigger()
@@ -37,9 +51,20 @@ public class HeadBobSystem : MonoBehaviour
     {
         Vector3 pos = Vector3.zero;
 
-        pos.y += Mathf.Lerp(pos.y, Mathf.Sin(Time.time * Frequency) * Amount * 1.4f, Smooth * Time.deltaTime);
-        pos.x += Mathf.Lerp(pos.x, Mathf.Cos(Time.time * Frequency / 2f) * Amount * 1.6f, Smooth * Time.deltaTime);
+        // Вычисляем целевые смещения по Y и X на основе синуса и косинуса
+        float targetY = Mathf.Sin(Time.time * Frequency) * Amount * 1.4f;
+        float targetX = Mathf.Cos(Time.time * Frequency / 2f) * Amount * 1.6f;
+
+        // Плавно интерполируем pos.y и pos.x к целевым значениям
+        pos.y = Mathf.Lerp(pos.y, targetY, Smooth * Time.deltaTime);
+        pos.x = Mathf.Lerp(pos.x, targetX, Smooth * Time.deltaTime);
+
+        // Устанавливаем позицию относительно предыдущей
         transform.localPosition += pos;
+
+        /*pos.y += Mathf.Lerp(pos.y, Mathf.Sin(Time.time * Frequency) * Amount * 1.4f, Smooth * Time.deltaTime);
+        pos.x += Mathf.Lerp(pos.x, Mathf.Cos(Time.time * Frequency / 2f) * Amount * 1.6f, Smooth * Time.deltaTime);
+        transform.localPosition += pos;*/
 
         return pos;
     }
@@ -48,6 +73,6 @@ public class HeadBobSystem : MonoBehaviour
     {
         if (transform.localPosition == StartPos) return;
 
-        transform.localPosition = Vector3.Lerp(transform.localPosition, StartPos, 1 * Time.deltaTime);
+        transform.localPosition = Vector3.Lerp(transform.localPosition, StartPos, StopHeadBobReturnSpeed * Time.deltaTime);
     }
 }
