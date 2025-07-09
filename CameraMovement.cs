@@ -6,9 +6,9 @@ public class CameraMovement : MonoBehaviour
 
     float xRotation;
     float yRotation;
-
-    float minCameraAngle = -90f;
-    float maxCamerAngle = 90f;
+    //углы равны 89 градусов потому что при 90 когда камера смотрит вниз ,невозможно передвижение вперед и назад
+    float minCameraAngle = -89f;
+    float maxCamerAngle = 89f;
 
     void Start()
     {

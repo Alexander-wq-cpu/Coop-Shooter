@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public CharacterController controller;
+    private CharacterController controller;
 
     [SerializeField] private float speed;
     float gravity = -9.81f * 2;
@@ -34,8 +34,22 @@ public class PlayerMovement : MonoBehaviour
         float x = Input.GetAxisRaw("Horizontal");
         float z = Input.GetAxisRaw("Vertical");
 
-        Vector3 move =  Camera.main.transform.right * x + Camera.main.transform.forward * z;
+        /*ќбнул€€ компоненту Y у векторов направлени€ камеры до сложени€, вы избегаете вли€ни€ наклона камеры на движение.
+         Ќормализаци€ гарантирует, что длина векторов forward и right равна 1, что корректно масштабирует движение.
+         ¬ результате движение персонажа всегда происходит по горизонтали, и он не "застревает" при взгл€де вниз.*/
+        Vector3 forward = Camera.main.transform.forward;
+        forward.y = 0;
+        forward.Normalize();
+
+        Vector3 right = Camera.main.transform.right;
+        right.y = 0;
+        right.Normalize();
+
+        Vector3 move = right * x + forward * z;
         controller.Move(move.normalized * speed * Time.deltaTime);
+        /*старый способ
+         * Vector3 move = Camera.main.transform.right * x + Camera.main.transform.forward * z;
+        move.y = 0f;*/
 
         //прикладываю к персонажу силу гравитации
         verticalVelocity.y += gravity * Time.deltaTime;

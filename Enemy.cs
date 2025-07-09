@@ -4,10 +4,15 @@ using UnityEngine.AI;
 public class Enemy : MonoBehaviour
 {
     [SerializeField] private int health;
+    public static int enemyDamage = 10;
     Animator animator;
     private NavMeshAgent navAgent;
     private bool isDead = false;
     public static int detectionRadius = 10;
+    public static float attackDistance = 3.7f;
+    public static float stopChasingPlayerDistance = 11;
+    
+
     private void Start()
     {
         navAgent = GetComponent<NavMeshAgent>();
@@ -36,21 +41,15 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if(navAgent.velocity.magnitude > 0.1f)
-        {
-            animator.SetBool("ISWALKING", true);
-        }
-        else
-        {
-            animator.SetBool("ISWALKING", false);
-        }
-    }
-
     private void OnDrawGizmos()
     {
-        Color color = Color.red;
+        Gizmos.color  = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRadius);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackDistance);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, stopChasingPlayerDistance);
     }
 }
